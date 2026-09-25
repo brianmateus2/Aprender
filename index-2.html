@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Missão: Aprender</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3fb;--card:#fff;--ink:#16213e;--mut:#5b6785;--acc:#3d5afe;--on:#fff;--xp:#ffb703;--ok:#12a36b;--bad:#e5484d;--line:#16213e;--soft:#dfe7f7;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1526;--card:#182042;--ink:#eaf0ff;--mut:#9aa8d0;--acc:#7b93ff;--on:#0f1526;--line:#050814;--soft:#243060}}
+:root[data-theme="dark"]{--bg:#0f1526;--card:#182042;--ink:#eaf0ff;--mut:#9aa8d0;--acc:#7b93ff;--on:#0f1526;--line:#050814;--soft:#243060}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 16px/1.5 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+h1,h2,h3{font-weight:800;line-height:1.15;margin:0}
+h1{font-size:2rem}h2{font-size:1.4rem}
+p{margin:.4em 0}
+.mut{color:var(--mut)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:var(--on);border:2px solid var(--line);border-radius:12px;padding:12px 18px;font-weight:800;box-shadow:0 4px 0 var(--line);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.btn.ghost{background:var(--card);color:var(--ink)}
+.btn.full{width:100%}
+.row{display:flex;gap:10px;align-items:center}
+.bar{height:12px;background:var(--soft);border-radius:8px;overflow:hidden;border:2px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--acc);transition:width .4s}
+.bar.gold i{background:var(--xp)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.xp{background:var(--xp);color:#16213e;font-weight:800;border:2px solid var(--line);border-radius:20px;padding:2px 12px;white-space:nowrap}
+.scene{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px;margin:16px 0}
+.scene .ctx{color:var(--mut);font-size:.95rem}
+.scene h2{margin-top:8px}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 4px 0 var(--line);transition:transform .1s,box-shadow .1s}
+.opt:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.opt b{flex:none;width:30px;height:30px;border-radius:8px;background:var(--soft);display:grid;place-items:center}
+.opt.ok{background:var(--ok);color:#fff}.opt.bad{background:var(--bad);color:#fff}
+.opt.ok b,.opt.bad b{background:rgba(255,255,255,.25)}
+.opt.pick{background:var(--acc);color:var(--on)}
+.opt:disabled{cursor:default}
+.fb{border:2px solid var(--line);border-radius:14px;padding:14px;margin-top:16px;background:var(--card);animation:pop .25s}
+.fb.ok{border-left:10px solid var(--ok)}.fb.bad{border-left:10px solid var(--bad)}
+.fb h3{margin-bottom:4px}
+.tag{display:inline-block;background:var(--soft);border-radius:8px;padding:2px 10px;font-size:.85rem;margin:6px 6px 0 0}
+.tag.new{background:var(--xp);color:#16213e;font-weight:800}
+.tag.retry{background:var(--bad);color:#fff}
+.topics{display:grid;gap:10px;margin:14px 0}
+.topic{display:flex;gap:12px;align-items:center;text-align:left;width:100%}
+.topic .em{font-size:1.8rem}
+input[type=text]{width:100%;font:inherit;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+.mastery{display:grid;gap:8px;margin:12px 0}
+.mastery div{display:grid;grid-template-columns:1fr 60px;gap:10px;align-items:center}
+.big{font-size:3rem;font-weight:800;line-height:1}
+.note{background:var(--soft);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:.95rem}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px}
+.gbtn svg{flex:none}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyDRzq6Nyt18PaAKDnEZKfqgGHWwNV5Wf0U",authDomain:"aprender-cdd20.firebaseapp.com",projectId:"aprender-cdd20",storageBucket:"aprender-cdd20.firebasestorage.app",messagingSenderId:"38865368724",appId:"1:38865368724:web:e4535aa787bb516cb46681",measurementId:"G-9N66HM6EQE"};
+firebase.initializeApp(firebaseConfig);
+const fbAuth=firebase.auth();
+const fbDB=firebase.firestore();
+const ADV={
+rev:{k:['revolução','francesa','frança','francesa'],e:'🇫🇷',t:'Revolução Francesa',m:'Impedir o colapso da monarquia francesa',s:[
+{c:'Crise econômica',ctx:'🇫🇷 França, 1789 — O preço do pão disparou e a população está revoltada.',q:'O que está contribuindo para a crise?',o:['Gastos do Estado + dívida + tributação desigual','Apenas falta de alimentos','Guerra com a Inglaterra','Impostos baixos'],x:'O Estado estava muito endividado (guerras e luxo da corte) e o Terceiro Estado pagava quase todos os impostos, enquanto clero e nobreza tinham privilégios.'},
+{c:'Assembleia Nacional',ctx:'Luís XVI convoca os Estados Gerais. Cada estado tem 1 voto, então clero e nobreza sempre vencem o Terceiro Estado (98% do povo).',q:'Você lidera o Terceiro Estado. Qual a jogada?',o:['Aceitar a derrota e voltar para casa','Proclamar-se Assembleia Nacional e jurar não se separar até haver Constituição','Pedir ajuda militar à Inglaterra','Aliar-se à nobreza contra o rei'],x:'Foi o Juramento da Quadra de Tênis: o Terceiro Estado assumiu que representava a nação e rompeu com a lógica dos privilégios.'},
+{c:'Direitos do Homem',ctx:'A Assembleia redige um documento fundador. Um assessor faz afirmações sobre ele.',q:'Qual afirmação sobre a Declaração dos Direitos do Homem e do Cidadão é FALSA?',o:['Inspira-se nas ideias iluministas','Afirma a igualdade perante a lei','Defende manter os privilégios da nobreza','Afirma que a soberania pertence à nação'],a:2,x:'A Declaração (1789) combate os privilégios de nascimento: liberdade, igualdade jurídica e soberania nacional.'},
+{c:'Cronologia',ctx:'Um cronista tenta registrar os eventos, mas as anotações se embaralharam.',q:'Ordene do mais antigo ao mais recente:',ord:['Queda da Bastilha (1789)','Declaração dos Direitos (ago/1789)','Execução de Luís XVI (1793)','Golpe de Napoleão (1799)'],x:'Bastilha → Declaração → República e execução do rei → Golpe do 18 Brumário, que encerra a fase revolucionária.'}]},
+foto:{k:['fotossíntese','fotossintese','planta','clorofila'],e:'🌱',t:'Fotossíntese',m:'Manter a planta viva até o fim do dia',s:[
+{c:'Reagentes',ctx:'☀️ Amanheceu e a planta está sem energia. Ela precisa captar matéria-prima.',q:'O que ela deve absorver?',o:['Luz, água e CO₂','Luz, glicose e O₂','Apenas água e sais minerais','O₂ e CO₂'],x:'Luz + água + CO₂ entram; glicose e O₂ saem. A planta fabrica o próprio alimento.'},
+{c:'Clorofila',ctx:'As folhas estão amareladas e absorvem pouca luz.',q:'Qual molécula, dentro dos cloroplastos, captura a luz?',o:['Hemoglobina','Clorofila','Amido','Celulose'],a:1,x:'A clorofila absorve principalmente luz vermelha e azul, e reflete a verde — por isso vemos as folhas verdes.'},
+{c:'Produtos',ctx:'Um botânico anota o que ocorre na folha, mas cometeu um erro.',q:'Qual afirmação é FALSA?',o:['A planta libera O₂','A planta produz glicose','A planta consome CO₂','A fotossíntese consome O₂ e libera CO₂'],a:3,x:'Isso descreve a respiração. Na fotossíntese o CO₂ é consumido e o O₂ é liberado.'},
+{c:'Etapas',ctx:'Você precisa reconstruir o processo dentro do cloroplasto.',q:'Ordene as etapas:',ord:['Clorofila absorve a luz','Água é quebrada e libera O₂','Energia é guardada em ATP','CO₂ vira glicose (Ciclo de Calvin)'],x:'Fase clara (luz → ATP + O₂) alimenta a fase escura (Calvin), que fixa o carbono em glicose.'}]},
+eq2:{k:['equação','2º grau','segundo grau','bhaskara','parábola','matemática'],e:'🏹',t:'Equação do 2º grau',m:'Acertar o alvo ajustando a parábola',s:[
+{c:'Raízes',ctx:'🎯 O alvo está onde a parábola y = x² − 5x + 6 cruza o chão (y = 0).',q:'Em quais valores de x ela cruza?',o:['x = 1 e x = 6','x = 2 e x = 3','x = −2 e x = −3','x = 5 e x = 6'],a:1,x:'Soma das raízes = 5 e produto = 6 → 2 e 3. Ou por Bhaskara: Δ = 1, x = (5 ± 1)/2.'},
+{c:'Vértice',ctx:'Um projétil segue y = −x² + 4x. Você precisa saber onde ele atinge a altura máxima.',q:'Em qual x fica o vértice?',o:['x = 4','x = 0','x = 2','x = −2'],a:2,x:'x do vértice = −b/2a = −4/(−2) = 2. Lá, y = 4.'},
+{c:'Discriminante',ctx:'Seu assistente comenta o Δ = b² − 4ac.',q:'Qual afirmação é FALSA?',o:['Δ > 0: duas raízes reais distintas','Δ = 0: uma raiz real (dupla)','Δ < 0: duas raízes reais distintas','Δ < 0: não há raízes reais'],a:2,x:'Com Δ < 0 a parábola não toca o eixo x, então não há raízes reais.'},
+{c:'Concavidade',ctx:'A trajetória sobe e depois desce, formando um "morrinho".',q:'Que sinal tem o coeficiente a?',o:['Positivo (a > 0)','Negativo (a < 0)','Zero','Não dá para saber'],a:1,x:'Se a < 0, a concavidade é para baixo (ponto máximo). Se a > 0, é para cima (ponto mínimo).'}]},
+mod:{k:['modernismo','modernista','semana de arte moderna','1922','oswald','mário de andrade','macunaíma','drummond','guimarães rosa','clarice','graciliano','geração de 30','geração de 45','literatura brasileira'],e:'🎨',t:'Modernismo',m:'Reinventar a arte brasileira e romper com o academicismo',s:[
+{c:'Ruptura de 1922',ctx:'🎨 São Paulo, fevereiro de 1922. No Theatro Municipal, artistas apresentam obras que a crítica tradicional chama de absurdas.',q:'Qual é o objetivo central da Semana de Arte Moderna?',o:['Romper com padrões acadêmicos e criar uma arte livre e com identidade brasileira','Restaurar a métrica rígida do Parnasianismo','Copiar as vanguardas europeias sem mudar nada','Voltar ao Romantismo indianista'],x:'A Semana de 1922 atacou o academicismo, defendeu a liberdade estética e buscou uma expressão nacional dialogando com as vanguardas europeias, sem copiá-las.'},
+{c:'Antropofagia',ctx:'1928. Oswald de Andrade publica o Manifesto Antropófago e propõe uma metáfora inspirada nos rituais tupis.',q:'O que a “antropofagia cultural” propõe?',o:['Rejeitar qualquer influência estrangeira','Imitar a cultura europeia com fidelidade','Devorar as influências estrangeiras e transformá-las em algo novo e brasileiro','Abandonar a cultura indígena'],a:2,x:'Como os tupis “devoravam” o inimigo para absorver sua força, a arte brasileira deveria absorver o que vem de fora e recriar a partir da própria realidade.'},
+{c:'Linguagem modernista',ctx:'Um crítico resume as características da primeira fase, mas uma delas está errada.',q:'Qual afirmação é FALSA?',o:['Uso do verso livre','Linguagem coloquial, próxima da fala brasileira','Defesa da métrica rígida e da rima perfeita','Humor, paródia e temas do cotidiano'],a:2,x:'Métrica rígida e rima perfeita eram marcas do Parnasianismo, justamente o que os modernistas contestaram. Eles preferiram o verso livre e a fala do povo.'},
+{c:'Macunaíma',ctx:'Mário de Andrade cria um herói “sem nenhum caráter”: nasce na selva, muda de cor, viaja a São Paulo e volta transformado.',q:'O que Macunaíma representa?',o:['Um herói nacional perfeito, ao estilo romântico','Uma síntese crítica e contraditória da diversidade cultural brasileira','O retrato fiel de um bandeirante paulista','Uma sátira dirigida apenas à cultura europeia'],a:1,x:'Em Macunaíma (1928) lendas indígenas, africanas, europeias e urbanas se misturam. O herói sem caráter definido simboliza uma identidade brasileira plural e contraditória.'},
+{c:'Ironia a Parnasianos',ctx:'Na Semana, um poema de Manuel Bandeira é declamado em meio a vaias. Ele satiriza poetas obcecados com a perfeição da forma.',q:'A que tradição literária o poema faz ironia?',o:['Parnasianismo','Romantismo','Realismo','Barroco'],x:'O poema “Os sapos” (1918) zomba dos parnasianos e do culto à forma perfeita, e virou uma espécie de hino da Semana de 22.'},
+{c:'Cronologia modernista',ctx:'Um pesquisador organiza uma linha do tempo do movimento, mas as fichas se misturaram.',q:'Ordene do mais antigo ao mais recente:',ord:['Semana de Arte Moderna (1922)','Manifesto da Poesia Pau-Brasil (1924)','Manifesto Antropófago (1928)','Vidas Secas, de Graciliano Ramos (1938)'],x:'A Semana (1922) abre o movimento; os manifestos de 1924 e 1928 aprofundam a identidade nacional; em 1938 a prosa social da Geração de 30 já está consolidada.'},
+{c:'Geração de 30',ctx:'Você lê um romance sobre uma família de retirantes no sertão nordestino, marcado por seca, fome e injustiça social.',q:'Onde ele se encaixa no Modernismo?',o:['2ª fase: romance regionalista e social, com crítica às desigualdades','1ª fase: ruptura radical de linguagem e manifestos','Parnasianismo tardio','Romantismo indianista'],x:'A 2ª fase (Geração de 30) tem autores como Graciliano Ramos, Rachel de Queiroz e Jorge Amado, que denunciam problemas sociais do Brasil.'},
+{c:'Autores e obras',ctx:'Você monta uma estante com autores da 2ª fase, mas uma etiqueta está trocada.',q:'Qual associação é FALSA?',o:['Rachel de Queiroz — O Quinze','Jorge Amado — Capitães da Areia','Cecília Meireles — Macunaíma','Graciliano Ramos — Vidas Secas'],a:2,x:'Macunaíma é de Mário de Andrade (1ª fase). Cecília Meireles é poeta de sensibilidade mais intimista; escreveu, por exemplo, Romanceiro da Inconfidência.'},
+{c:'Drummond',ctx:'Um poeta de Itabira (MG) escreve sobre a pedra no meio do caminho e sobre o mundo em guerra.',q:'Qual traço marca a poesia de Drummond na 2ª fase?',o:['Ironia, angústia diante do mundo moderno e preocupação social','Perfeição métrica e rimas ricas parnasianas','Idealização do índio como herói nacional','Culto à forma pura, sem tema social'],x:'Carlos Drummond de Andrade une o cotidiano, a reflexão existencial, a ironia e o olhar social, em obras como Sentimento do Mundo e A Rosa do Povo.'},
+{c:'Três fases',ctx:'Um professor pede que você organize a periodização do Modernismo brasileiro.',q:'Ordene as fases:',ord:['1ª fase (1922–1930): ruptura, manifestos e experimentação','2ª fase (1930–1945): romance social e poesia madura','3ª fase (1945 em diante): Geração de 45, prosa introspectiva e experimentação'],x:'Ruptura e busca de identidade vêm primeiro; depois consolidação, com romance social e poesia madura; por fim, refinamento formal e mergulho interior.'},
+{c:'Guimarães Rosa',ctx:'1956. Um romance sobre jagunços inventa palavras e mistura oralidade sertaneja com sintaxe erudita.',q:'O que marca a prosa de Guimarães Rosa na 3ª fase?',o:['Manifestos de ruptura contra o academicismo','Regionalismo com invenção de linguagem e dimensão universal e metafísica','Denúncia documental, sem experimentação de linguagem','Retorno ao Realismo do século XIX'],a:1,x:'Em Grande Sertão: Veredas, o sertão vira um espaço universal; Rosa recria a linguagem e discute bem, mal, destino e existência.'},
+{c:'Prosa intimista',ctx:'Uma narradora quase não “faz” nada, mas o texto acompanha cada movimento do pensamento e da sensação.',q:'Qual é o foco da prosa de Clarice Lispector?',o:['Denúncia da seca e da fome','Investigação psicológica e fluxo de consciência','Exaltação nacionalista','Descrição objetiva de paisagens, ao modo parnasiano'],a:1,x:'Clarice, autora de Perto do Coração Selvagem e A Hora da Estrela, desloca a ação para o interior das personagens, com epifanias e introspecção.'},
+{c:'Geração de 45',ctx:'Um poeta pernambucano, avesso ao sentimentalismo, escreve como um “engenheiro”. Em Morte e Vida Severina, o sertanejo retirante enfrenta a morte a cada passo.',q:'Qual é a marca da poesia de João Cabral de Melo Neto?',o:['Confessionalismo melancólico e sentimental','Rigor construtivo, linguagem concreta e imagens objetivas','Verso livre sem controle formal','Idealização romântica do sertão'],a:1,x:'Cabral une precisão formal e imagens concretas, e faz da poesia uma reflexão sobre a dura realidade social do Nordeste.'}]},
+reg:{k:['regência','regencia','regência verbal','regência nominal','verbal','nominal','assistir','preferir','aspirar'],e:'✍️',t:'Regência verbal e nominal',m:'Revisar o texto de um jornal e cortar todos os erros de regência antes da impressão',s:[
+{c:'O que é regência',ctx:'📰 Redação de jornal, 23h. Sua tarefa é revisar o texto antes de ir para a gráfica. O editor pergunta se você domina o básico.',q:'O que é regência?',o:['A relação de dependência entre um termo regente e seu complemento, com ou sem preposição','A concordância do verbo com o sujeito','A ordem em que as palavras aparecem na frase','O uso do sentido figurado nas palavras'],x:'Regência estuda como um termo (o regente) exige ou dispensa uma preposição para se ligar ao complemento (o regido).'},
+{c:'Verbal x nominal',ctx:'Você encontra em uma matéria “obediente aos pais” e “gostar de música”.',q:'Qual é a diferença entre regência nominal e verbal?',o:['A nominal tem como regente um verbo; a verbal, um substantivo','A nominal tem como regente um substantivo, adjetivo ou advérbio; a verbal, um verbo','As duas só existem com preposição','A verbal trata só de verbos intransitivos'],a:1,x:'Verbal: o regente é um verbo (gostar DE música). Nominal: o regente é um nome (obediente AOS pais, aversão A barulho).'},
+{c:'Assistir',ctx:'Manchete: “Milhares assistem ___ final do campeonato”.',q:'No sentido de “ver”, qual forma segue a norma-padrão?',o:['assistem a final','assistem à final','assistem de final','assistem em final'],a:1,x:'Assistir no sentido de ver é transitivo indireto: assistir A. Já no sentido de ajudar, é transitivo direto: assistir o doente.'},
+{c:'Aspirar',ctx:'Trecho de uma entrevista: “O jovem aspira ___ cargo de diretor”.',q:'Como completar, com o sentido de “desejar”?',o:['aspira o cargo','aspira ao cargo','aspira do cargo','aspira no cargo'],a:1,x:'Aspirar com sentido de desejar exige a preposição A. Com sentido de respirar, é transitivo direto: aspirar o ar.'},
+{c:'Chegar e ir',ctx:'Uma repórter escreve: “Cheguei ___ escola às sete horas”.',q:'Qual forma segue a norma-padrão?',o:['Cheguei na escola','Cheguei à escola','Cheguei em a escola','Cheguei pra escola'],a:1,x:'Verbos de movimento como ir e chegar pedem a preposição A. Na fala é comum usar em, mas a norma-padrão pede a (chegar à escola).'},
+{c:'Obedecer',ctx:'Em uma notícia sobre trânsito: “Os motoristas devem obedecer ___ sinais”.',q:'Como completar segundo a norma-padrão?',o:['obedecer os sinais','obedecer aos sinais','obedecer de sinais','obedecer com sinais'],a:1,x:'Obedecer e desobedecer são transitivos indiretos: quem obedece, obedece A alguém ou a algo.'},
+{c:'Preferir',ctx:'Você lê quatro frases na coluna de opinião. Uma delas foge da norma-padrão.',q:'Qual frase é INCORRETA?',o:['Prefiro café a chá','Prefiro estudar a dormir','Prefiro mais cinema do que teatro','Prefiro o campo à cidade'],a:2,x:'Preferir pede a preposição A, sem “mais” nem “do que”: Prefiro cinema a teatro.'},
+{c:'Regência nominal',ctx:'Você revisa um anúncio de vaga, mas um trecho tem erro de regência nominal.',q:'Qual frase está INCORRETA?',o:['Ele é muito obediente aos pais','Ela é capaz de resolver o problema','Tenho aversão a barulhos','O candidato é apto de participar'],a:3,x:'Apto pede A ou PARA: apto a participar / apto para participar. As outras seguem a regência dos nomes.'},
+{c:'Método de análise',ctx:'Uma estagiária pergunta como você descobre a regência de um verbo.',q:'Ordene os passos:',ord:['Identifique o verbo ou o nome regente','Veja o sentido que ele tem no contexto','Descubra se ele pede preposição ao complemento','Confira na norma-padrão e reescreva a frase'],x:'O sentido muda a regência (assistir, aspirar). Por isso primeiro identifique o termo e o sentido; depois, a preposição.'}]},
+tec:{k:['tecido','tecidos','epitelial','conjuntivo','muscular','nervoso','histologia','tecidos humanos'],e:'🔬',t:'Tecidos Humanos',m:'Identificar cada tecido antes do exame de histologia',s:[
+{c:'Tecido epitelial',ctx:'🔬 Laboratório de histologia — você observa uma lâmina ao microscópio e precisa identificar o tecido.',q:'Qual das alternativas apresenta uma característica típica do tecido epitelial?',o:['Células afastadas com muita matriz extracelular','Células justapostas, pouca matriz extracelular e avascular','Células alongadas com capacidade de contração','Grande quantidade de fibras colágenas e elásticas'],a:1,x:'O tecido epitelial tem células bem unidas (justapostas), pouca matriz extracelular e é avascular, dependendo do conjuntivo vizinho para se nutrir.'},
+{c:'Função do conjuntivo',ctx:'Uma nova lâmina mostra células espalhadas em meio a muita matriz extracelular.',q:'O tecido conjuntivo tem como função principal:',o:['Transmitir impulsos nervosos','Revestir superfícies e formar glândulas','Sustentar, ligar e proteger outros tecidos','Promover movimentos voluntários'],a:2,x:'O conjuntivo sustenta, liga e protege outros tecidos e órgãos, graças à sua matriz extracelular abundante.'},
+{c:'Músculo cardíaco',ctx:'No coração de um paciente, você identifica fibras estriadas que se contraem sem comando consciente.',q:'Qual tipo de tecido muscular é encontrado no coração e apresenta contração involuntária?',o:['Estriado esquelético','Liso','Estriado cardíaco','Conjuntivo denso'],a:2,x:'O músculo estriado cardíaco tem estriações como o esquelético, mas se contrai de forma involuntária e rítmica.'},
+{c:'Neurônio',ctx:'Uma lâmina do cérebro mostra células com longos prolongamentos.',q:'A principal célula do tecido nervoso, responsável pela condução de impulsos, é o:',o:['Fibroblasto','Neurônio','Condrócito','Osteócito'],a:1,x:'O neurônio é a célula especializada em gerar e conduzir impulsos nervosos.'},
+{c:'Epitélio glandular',ctx:'Você analisa uma amostra da tireoide.',q:'Qual tecido é responsável pela formação das glândulas (ex.: tireoide, sudoríparas)?',o:['Conjuntivo','Muscular','Epitelial glandular','Nervoso'],a:2,x:'Glândulas como tireoide e sudoríparas são formadas por tecido epitelial glandular, especializado em secreção.'},
+{c:'Tecido ósseo',ctx:'Uma radiografia mostra o interior de um osso.',q:'O tecido conjuntivo ósseo tem como célula característica:',o:['Adipócito','Osteócito','Condrócito','Leucócito'],a:1,x:'O osteócito é a célula madura do tecido ósseo, alojada nas lacunas da matriz mineralizada.'},
+{c:'Músculo esquelético',ctx:'Ao microscópio, fibras longas com estrias e núcleos na periferia chamam sua atenção.',q:'Qual tecido apresenta células com estriações e núcleos periféricos, sendo de contração voluntária?',o:['Muscular liso','Muscular estriado esquelético','Muscular cardíaco','Epitelial estratificado'],a:1,x:'O músculo estriado esquelético tem núcleos periféricos e se contrai por comando voluntário.'},
+{c:'Bainha de mielina',ctx:'Um exame de imagem mostra o revestimento que acelera a condução nervosa.',q:'As células de Schwann e os oligodendrócitos estão associados à formação de:',o:['Matriz óssea','Bainha de mielina no tecido nervoso','Fibras colágenas no conjuntivo','Glândulas endócrinas'],a:1,x:'Células de Schwann (no SNP) e oligodendrócitos (no SNC) formam a bainha de mielina, que isola e acelera a condução do impulso nervoso.'},
+{c:'Conjuntivo frouxo',ctx:'Uma biópsia de pele mostra um tecido frouxo logo abaixo do epitélio.',q:'O tecido conjuntivo frouxo tem como função:',o:['Formar tendões e ligamentos','Preencher espaços e nutrir tecidos epiteliais','Gerar movimentos peristálticos','Conduzir impulsos elétricos'],a:1,x:'O conjuntivo frouxo preenche espaços entre órgãos e nutre os tecidos epiteliais vizinhos, já que estes são avasculares.'},
+{c:'Nutrição do epitélio',ctx:'Você percebe que a lâmina de pele não mostra vasos sanguíneos dentro do epitélio.',q:'Qual tecido é avascular e depende do tecido conjuntivo subjacente para nutrição?',o:['Muscular','Nervoso','Conjuntivo','Epitelial'],a:3,x:'O tecido epitelial não tem vasos sanguíneos próprios; ele recebe nutrientes por difusão a partir do conjuntivo subjacente.'}]},
+cardio:{k:['coração','cardiovascular','circulatório','sangue','sistema cardiovascular','artérias','veias'],e:'❤️',t:'Sistema Cardiovascular',m:'Manter o sangue circulando por todo o corpo',s:[
+{c:'Câmaras do coração',ctx:'❤️ Sala de anatomia — você segura um coração humano em miniatura para estudar.',q:'O coração humano possui quantas câmaras?',o:['2 átrios e 2 ventrículos','1 átrio e 1 ventrículo','3 câmaras','4 átrios'],x:'O coração humano tem 4 câmaras: 2 átrios (superiores) e 2 ventrículos (inferiores).'},
+{c:'Valva tricúspide',ctx:'Você segue o fluxo de sangue do lado direito do coração.',q:'Qual válvula separa o átrio direito do ventrículo direito?',o:['Mitral','Aórtica','Tricúspide','Pulmonar'],a:2,x:'A valva tricúspide fica entre o átrio direito e o ventrículo direito, com três cúspides.'},
+{c:'Veias pulmonares',ctx:'Você acompanha o sangue que volta dos pulmões para o coração.',q:'O sangue oxigenado retorna ao coração pela:',o:['Veia cava superior','Veia cava inferior','Veias pulmonares','Artéria pulmonar'],a:2,x:'As veias pulmonares trazem sangue oxigenado dos pulmões até o átrio esquerdo — a exceção entre as veias, que geralmente carregam sangue pobre em oxigênio.'},
+{c:'Aorta',ctx:'O sangue sai do ventrículo esquerdo rumo ao corpo todo.',q:'A artéria que leva sangue do ventrículo esquerdo para o corpo é a:',o:['Artéria pulmonar','Aorta','Veia cava','Coronária'],a:1,x:'A aorta é a maior artéria do corpo e nasce do ventrículo esquerdo, distribuindo sangue oxigenado para todos os tecidos.'},
+{c:'Miocárdio',ctx:'Você examina a parede muscular do coração ao microscópio.',q:'O miocárdio é composto principalmente por tecido:',o:['Epitelial','Conjuntivo denso','Muscular estriado cardíaco','Nervoso'],a:2,x:'O miocárdio é a camada muscular do coração, formada por tecido muscular estriado cardíaco.'},
+{c:'Nó sinoatrial',ctx:'Um monitor cardíaco mostra o ritmo elétrico que comanda os batimentos.',q:'O nó sinoatrial (SA) tem a função de:',o:['Bombear sangue','Gerar o impulso elétrico que inicia o batimento','Filtrar o sangue','Produzir hemácias'],a:1,x:'O nó SA é o marca-passo natural do coração: gera o impulso elétrico que inicia cada batimento.'},
+{c:'Artéria pulmonar',ctx:'Você segue o sangue pobre em oxigênio saindo do ventrículo direito.',q:'Qual vaso sanguíneo leva sangue do coração para os pulmões?',o:['Veia pulmonar','Artéria pulmonar','Aorta','Veia cava'],a:1,x:'A artéria pulmonar leva sangue do ventrículo direito até os pulmões para ser oxigenado — a exceção entre as artérias, que geralmente carregam sangue rico em oxigênio.'},
+{c:'Pressão sistólica',ctx:'Um aparelho de pressão registra dois números durante a medição.',q:'A pressão arterial sistólica refere-se à pressão durante:',o:['O relaxamento ventricular','A contração ventricular (sístole)','O enchimento atrial','A diástole atrial'],a:1,x:'A sistólica é a pressão registrada durante a contração dos ventrículos (sístole), quando o sangue é ejetado com mais força.'},
+{c:'Capilares',ctx:'Você observa vasos finíssimos ao redor das células de um tecido.',q:'Os capilares são importantes porque:',o:['Conduzem sangue sob alta pressão','Possuem parede espessa para resistência','Permitem trocas de gases e nutrientes com tecidos','Armazenam sangue venoso'],a:2,x:'Os capilares têm paredes finíssimas, ideais para a troca de gases, nutrientes e resíduos entre o sangue e os tecidos.'},
+{c:'Componentes do sistema',ctx:'Ao final do estudo, você resume o que forma o sistema cardiovascular.',q:'O sistema cardiovascular é formado por:',o:['Coração, vasos sanguíneos e sangue','Coração, pulmões e traqueia','Veias, artérias e nervos','Sangue, linfa e gânglios'],x:'O sistema cardiovascular é formado pelo coração, pelos vasos sanguíneos (artérias, veias e capilares) e pelo sangue.'}]},
+resp:{k:['respiratório','respiração','pulmão','pulmões','sistema respiratório','alvéolos'],e:'🌬️',t:'Sistema Respiratório',m:'Garantir que o oxigênio chegue a cada célula do corpo',s:[
+{c:'Função respiratória',ctx:'🌬️ Consultório de pneumologia — o médico explica para que serve o sistema respiratório.',q:'A principal função do sistema respiratório é:',o:['Digestão de proteínas','Troca gasosa (O₂ e CO₂)','Produção de hormônios','Filtração do sangue'],a:1,x:'O sistema respiratório existe para realizar a troca gasosa: captar O₂ do ar e eliminar CO₂ do corpo.'},
+{c:'Trajeto do ar',ctx:'Você acompanha uma molécula de ar desde a inspiração.',q:'O ar inspirado passa, na ordem correta, por:',o:['Fossas nasais → faringe → laringe → traqueia → brônquios → bronquíolos → alvéolos','Alvéolos → bronquíolos → traqueia → laringe','Faringe → traqueia → fossas nasais → brônquios','Laringe → fossas nasais → faringe → alvéolos'],x:'O ar percorre fossas nasais, faringe, laringe, traqueia, brônquios, bronquíolos, até chegar aos alvéolos.'},
+{c:'Trocas gasosas',ctx:'Uma imagem de microscopia mostra pequenos sacos rodeados de capilares.',q:'As trocas gasosas ocorrem nos:',o:['Brônquios','Alvéolos pulmonares','Traqueia','Fossas nasais'],a:1,x:'É nos alvéolos pulmonares, envolvidos por capilares, que o O₂ entra no sangue e o CO₂ sai dele.'},
+{c:'Diafragma',ctx:'Você observa o movimento de um músculo abaixo dos pulmões durante a respiração.',q:'O diafragma é um músculo importante para:',o:['Digestão','Movimentação dos pulmões durante a respiração','Produção de voz','Filtração do ar'],a:1,x:'O diafragma se contrai e relaxa para expandir e retrair a caixa torácica, permitindo a entrada e saída de ar dos pulmões.'},
+{c:'Epiglote',ctx:'Durante a deglutição, uma pequena estrutura se fecha sobre a laringe.',q:'A epiglote tem a função de:',o:['Produzir muco','Impedir a entrada de alimentos na laringe','Realizar trocas gasosas','Aquecer o ar inspirado'],a:1,x:'A epiglote cobre a laringe durante a deglutição, evitando que alimentos entrem nas vias respiratórias.'},
+{c:'Fossas nasais',ctx:'Em um dia frio, o ar que entra pelo nariz sai aquecido até chegar aos pulmões.',q:'O ar é umedecido e aquecido principalmente nas:',o:['Traqueia','Fossas nasais','Bronquíolos','Alvéolos'],a:1,x:'As fossas nasais filtram, aquecem e umedecem o ar antes que ele siga para o restante do sistema respiratório.'},
+{c:'Hemoglobina',ctx:'Um exame de sangue avalia a proteína das hemácias.',q:'A hemoglobina, presente nas hemácias, tem a função de:',o:['Produzir anticorpos','Transportar oxigênio no sangue','Coagular o sangue','Regular a pressão arterial'],a:1,x:'A hemoglobina se liga ao oxigênio nos pulmões e o transporta pelo sangue até os tecidos.'},
+{c:'Respiração celular',ctx:'Você estuda onde a energia da glicose é finalmente liberada dentro da célula.',q:'A respiração celular ocorre:',o:['Nos pulmões','Nas mitocôndrias das células','Nos alvéolos','No coração'],a:1,x:'A respiração celular, que usa o O₂ e produz CO₂, acontece nas mitocôndrias de cada célula.'},
+{c:'Volume corrente',ctx:'Um espirômetro mede quanto ar você move a cada respiração tranquila.',q:'O volume de ar que entra e sai dos pulmões em uma respiração normal chama-se:',o:['Volume residual','Volume corrente','Capacidade vital','Volume de reserva inspiratória'],a:1,x:'O volume corrente é a quantidade de ar movimentada numa respiração normal, sem esforço extra.'},
+{c:'Pleura',ctx:'Uma radiografia mostra uma fina membrana ao redor dos pulmões.',q:'A pleura é uma membrana que:',o:['Reveste os pulmões e facilita seu deslizamento','Produz bile','Filtra o sangue','Conduz impulsos nervosos'],x:'A pleura reveste os pulmões e a caixa torácica, reduzindo o atrito durante os movimentos respiratórios.'}]},
+dig:{k:['digestório','digestivo','digestão','estômago','intestino','sistema digestório'],e:'🍽️',t:'Sistema Digestório',m:'Transformar o alimento em energia para o corpo',s:[
+{c:'Início do tubo digestório',ctx:'🍽️ Aula de anatomia — você segue o caminho do alimento desde a primeira mordida.',q:'O tubo digestório inicia-se na:',o:['Faringe','Boca','Esôfago','Estômago'],a:1,x:'O tubo digestório começa na boca, onde ocorre a mastigação e o início da digestão.'},
+{c:'Digestão de proteínas',ctx:'Um bife é mastigado e engolido, seguindo até um órgão com suco ácido.',q:'A digestão química de proteínas começa no:',o:['Estômago','Intestino grosso','Esôfago','Fígado'],x:'No estômago, a pepsina e o ácido clorídrico iniciam a digestão química das proteínas.'},
+{c:'Produção de bile',ctx:'Uma refeição gordurosa exige a ajuda de uma substância produzida por um órgão anexo.',q:'O órgão que produz bile é o:',o:['Pâncreas','Estômago','Fígado','Intestino delgado'],a:2,x:'O fígado produz a bile, armazenada na vesícula biliar e liberada para ajudar na digestão das gorduras.'},
+{c:'Intestino delgado',ctx:'Depois do estômago, o alimento segue para um longo tubo cheio de dobras internas.',q:'A principal função do intestino delgado é:',o:['Absorção de água','Absorção de nutrientes','Armazenamento de fezes','Produção de bile'],a:1,x:'O intestino delgado é o principal local de absorção dos nutrientes da digestão.'},
+{c:'Suco gástrico',ctx:'Você analisa uma amostra do conteúdo estomacal.',q:'O suco gástrico contém principalmente:',o:['Amilase','Pepsina e ácido clorídrico','Bile','Insulina'],a:1,x:'O suco gástrico é composto principalmente por pepsina (enzima) e ácido clorídrico, que digerem proteínas e eliminam micro-organismos.'},
+{c:'Pâncreas',ctx:'Um órgão libera tanto enzimas digestivas quanto hormônios como a insulina.',q:'O pâncreas é uma glândula:',o:['Apenas exócrina','Apenas endócrina','Mista (exócrina e endócrina)','Linfática'],a:2,x:'O pâncreas é uma glândula mista: exócrina (enzimas digestivas) e endócrina (insulina e glucagon).'},
+{c:'Peristaltismo',ctx:'Você observa ondas de contração empurrando o alimento pelo tubo digestório.',q:'O movimento peristáltico é realizado por:',o:['Tecido epitelial','Músculo liso do tubo digestório','Músculo estriado esquelético','Tecido nervoso'],a:1,x:'O peristaltismo é produzido pelas contrações do músculo liso presente na parede do tubo digestório.'},
+{c:'Absorção de água',ctx:'O que sobra do alimento segue para a parte final do intestino.',q:'A absorção de água ocorre principalmente no:',o:['Estômago','Intestino delgado','Intestino grosso','Esôfago'],a:2,x:'O intestino grosso absorve a maior parte da água restante, formando as fezes.'},
+{c:'Vilosidades intestinais',ctx:'Ao microscópio, a parede do intestino delgado parece coberta de pequenas dobras.',q:'As vilosidades intestinais aumentam:',o:['A produção de bile','A superfície de absorção','A acidez do estômago','O armazenamento de fezes'],a:1,x:'As vilosidades e microvilosidades aumentam muito a superfície de contato, otimizando a absorção de nutrientes.'},
+{c:'Piloro',ctx:'Um esfíncter controla a passagem do bolo alimentar para fora do estômago.',q:'O esfíncter que controla a passagem do alimento do estômago para o intestino é o:',o:['Cárdia','Piloro','Ileocecal','Anal'],a:1,x:'O piloro é o esfíncter que regula a saída do conteúdo gástrico para o duodeno.'}]},
+endo:{k:['endócrino','hormônio','hormonios','glândulas','sistema endócrino','hipófise'],e:'⚗️',t:'Sistema Endócrino',m:'Manter os hormônios do corpo em equilíbrio',s:[
+{c:'Glândulas endócrinas',ctx:'⚗️ Laboratório de endocrinologia — você estuda como o corpo se comunica por hormônios.',q:'Os hormônios são substâncias produzidas por:',o:['Glândulas exócrinas','Glândulas endócrinas','Neurônios motores','Músculos lisos'],a:1,x:'Hormônios são produzidos pelas glândulas endócrinas e liberados diretamente na corrente sanguínea.'},
+{c:'Glândula mestra',ctx:'Uma pequena glândula na base do encéfalo comanda várias outras.',q:'A glândula conhecida como “mestra” do sistema endócrino é a:',o:['Tireoide','Hipófise','Suprarrenal','Pâncreas'],a:1,x:'A hipófise é chamada de glândula mestra por regular a atividade de várias outras glândulas endócrinas.'},
+{c:'Metabolismo basal',ctx:'Um paciente com metabolismo acelerado faz exames de sangue.',q:'O hormônio que regula o metabolismo basal é produzido pela:',o:['Hipófise','Tireoide (T3 e T4)','Pâncreas','Suprarrenal'],a:1,x:'A tireoide produz T3 e T4, hormônios que regulam o metabolismo basal do corpo.'},
+{c:'Insulina',ctx:'Após uma refeição, a glicemia sobe e o corpo precisa regulá-la.',q:'A insulina é produzida pelo:',o:['Fígado','Pâncreas (ilhotas de Langerhans)','Estômago','Intestino'],a:1,x:'A insulina é produzida pelas ilhotas de Langerhans, no pâncreas, e reduz a glicemia.'},
+{c:'Adrenalina',ctx:'Diante de um perigo, o coração acelera e o corpo se prepara para reagir.',q:'O hormônio adrenalina é secretado pela:',o:['Tireoide','Glândula suprarrenal (medula)','Hipófise','Ovários'],a:1,x:'A adrenalina é liberada pela medula da glândula suprarrenal em situações de estresse ou perigo.'},
+{c:'Hormônios sexuais femininos',ctx:'Você estuda o ciclo menstrual e os hormônios envolvidos.',q:'Os hormônios sexuais femininos (estrogênio e progesterona) são produzidos pelos:',o:['Testículos','Ovários','Pâncreas','Timo'],a:1,x:'Estrogênio e progesterona são produzidos pelos ovários e regulam o ciclo reprodutivo feminino.'},
+{c:'Hormônio do crescimento',ctx:'Um adolescente passa por um estirão de crescimento.',q:'O hormônio do crescimento (GH) é produzido pela:',o:['Tireoide','Hipófise anterior','Suprarrenal','Paratireoide'],a:1,x:'O GH é produzido pela hipófise anterior e estimula o crescimento dos ossos e tecidos.'},
+{c:'Regulação do cálcio',ctx:'Um exame mostra alteração no nível de cálcio no sangue.',q:'O cálcio sanguíneo é regulado principalmente pelo hormônio:',o:['Insulina','Paratormônio (PTH)','Adrenalina','Cortisol'],a:1,x:'O PTH, produzido pelas paratireoides, regula os níveis de cálcio no sangue.'},
+{c:'Integração de sistemas',ctx:'Você percebe que hormônios e impulsos nervosos trabalham juntos para regular o corpo.',q:'O sistema endócrino atua em conjunto com o sistema:',o:['Digestório','Nervoso','Respiratório','Esquelético'],a:1,x:'O sistema endócrino e o sistema nervoso formam o sistema neuroendócrino, atuando juntos na regulação do organismo.'},
+{c:'Feedback negativo',ctx:'Quando o nível de um hormônio fica alto, o corpo reduz sua própria produção.',q:'O feedback negativo no sistema endócrino serve para:',o:['Aumentar indefinidamente a produção hormonal','Manter a homeostase, reduzindo a produção quando há excesso','Impedir a produção de hormônios','Acelerar o metabolismo basal'],a:1,x:'O feedback negativo mantém a homeostase: quando um hormônio está em excesso, sua produção é reduzida.'}]},
+nervo:{k:['sistema nervoso','neurônio','snc','snp','cérebro','cerebelo'],e:'🧠',t:'Sistema Nervoso',m:'Coordenar os impulsos nervosos por todo o corpo',s:[
+{c:'SNC',ctx:'🧠 Consultório de neurologia — você estuda como o sistema nervoso se organiza.',q:'O sistema nervoso central (SNC) é formado por:',o:['Encéfalo e medula espinhal','Nervos e gânglios','Coração e pulmões','Músculos e tendões'],x:'O SNC é formado pelo encéfalo (cérebro, cerebelo e tronco encefálico) e pela medula espinhal.'},
+{c:'Neurônio',ctx:'Uma célula com longos prolongamentos conduz sinais elétricos pelo corpo.',q:'A célula responsável pela condução de impulsos no sistema nervoso é o:',o:['Fibroblasto','Neurônio','Osteócito','Adipócito'],a:1,x:'O neurônio é a célula especializada em receber, processar e transmitir impulsos nervosos.'},
+{c:'Dendritos',ctx:'Você observa as ramificações que recebem sinais de outros neurônios.',q:'A parte do neurônio que recebe estímulos é o:',o:['Axônio','Dendrito','Corpo celular','Mielina'],a:1,x:'Os dendritos são prolongamentos especializados em receber estímulos de outros neurônios.'},
+{c:'Bainha de mielina',ctx:'Um axônio revestido por uma capa isolante conduz impulsos muito mais rápido.',q:'A bainha de mielina tem a função de:',o:['Produzir neurotransmissores','Isolar e acelerar a condução do impulso nervoso','Armazenar glicogênio','Contrair músculos'],a:1,x:'A mielina isola o axônio eletricamente e acelera a condução do impulso nervoso.'},
+{c:'SNP',ctx:'Fora do encéfalo e da medula, uma rede de nervos se espalha pelo corpo.',q:'O sistema nervoso periférico (SNP) é formado por:',o:['Encéfalo apenas','Medula apenas','Nervos e gânglios fora do SNC','Músculos esqueléticos'],a:2,x:'O SNP é formado pelos nervos e gânglios que ficam fora do encéfalo e da medula espinhal.'},
+{c:'Nervos motores',ctx:'Você decide mover o braço e o comando sai do cérebro até o músculo.',q:'Os nervos que levam informações do SNC para os músculos são os:',o:['Sensitivos','Motores','Mistos','Autônomos'],a:1,x:'Os nervos motores (eferentes) levam comandos do SNC até os músculos e glândulas.'},
+{c:'Sistema autônomo',ctx:'Sem você perceber, seu coração bate e seu intestino se move sozinho.',q:'O sistema nervoso autônomo divide-se em:',o:['Simpático e parassimpático','Central e periférico','Somático e motor','Sensorial e integrador'],x:'O sistema nervoso autônomo se divide em simpático (ação, alerta) e parassimpático (repouso, digestão).'},
+{c:'Cerebelo',ctx:'Uma pessoa com lesão nessa região perde o equilíbrio ao andar.',q:'A região do encéfalo responsável pelo equilíbrio e coordenação motora é o:',o:['Cérebro','Cerebelo','Bulbo','Hipotálamo'],a:1,x:'O cerebelo coordena os movimentos e mantém o equilíbrio do corpo.'},
+{c:'Bulbo',ctx:'Uma lesão nessa estrutura pode comprometer funções essenciais para a vida.',q:'O bulbo (medula oblonga) controla funções vitais como:',o:['Pensamento e memória','Respiração e frequência cardíaca','Visão e audição','Equilíbrio'],a:1,x:'O bulbo controla funções vitais automáticas, como respiração e batimentos cardíacos.'},
+{c:'Fenda sináptica',ctx:'No espaço entre dois neurônios, substâncias químicas transmitem o sinal adiante.',q:'Os neurotransmissores são liberados na:',o:['Bainha de mielina','Fenda sináptica','Medula óssea','Matriz extracelular'],a:1,x:'Os neurotransmissores são liberados na fenda sináptica, o espaço entre um neurônio e o seguinte (ou outra célula-alvo).'}]}
+};
+const KEY='missao_aprender_v1';
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}};
+let D=Object.assign({xp:0,mem:{}},load());
+const $=document.getElementById('app');
+const L='ABCD';
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+let G;
+let claudeDB=null,uid=null,rkUnsub=null;
+
+function boot(){
+  fbAuth.onAuthStateChanged(user=>{
+    if(user){
+      uid=user.uid;claudeDB=fbDB;
+      if(!D.name){D.name=(user.displayName||'Jogador').slice(0,24);save()}
+      syncXP();home();
+    }else{
+      uid=null;claudeDB=null;loginGate();
+    }
+  });
+}
+
+function syncXP(){
+  if(!claudeDB||!uid||!D.name)return;
+  claudeDB.doc('players/'+uid).set({name:D.name,xp:D.xp,updated:Date.now()}).catch(()=>{});
+}
+
+function loginGate(){
+  $.innerHTML=`<div class="scene" style="text-align:center">
+  <h1>Missão: Aprender</h1>
+  <p class="mut">Entre com sua conta Google pra jogar e aparecer no ranking dos amigos.</p>
+  <button class="btn full gbtn" id="glogin" style="margin-top:16px"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.6 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 6.1 29.5 4 24 4c-7.5 0-14 4.1-17.7 10.7z"/><path fill="#4CAF50" d="M24 45c5.3 0 10.1-2 13.6-5.4l-6.3-5.3C29.4 35.7 26.8 36.5 24 36.5c-5.3 0-9.7-3.5-11.3-8.3l-6.5 5C9.9 40.7 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.3 5.3C40.6 36.4 44 30.7 44 24c0-1.2-.1-2.4-.4-3.5z"/></svg><span>Entrar com Google</span></button>
+  <p class="mut" id="loginErr" style="margin-top:10px"></p>
+  </div>`;
+  document.getElementById('glogin').onclick=()=>{
+    document.getElementById('loginErr').textContent='';
+    fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(()=>{
+      document.getElementById('loginErr').textContent='Não deu pra entrar agora. Tente de novo.';
+    });
+  };
+}
+
+function showRanking(){
+  $.innerHTML=`<div class="top"><button class="btn ghost" id="x" aria-label="Voltar">✕</button><h2 style="flex:1;text-align:center">🏆 Ranking</h2><span class="xp">⭐ ${D.xp}</span></div><div id="rk" class="note">Carregando…</div>`;
+  document.getElementById('x').onclick=()=>{if(rkUnsub){rkUnsub();rkUnsub=null}home()};
+  if(!claudeDB){document.getElementById('rk').textContent='Ranking indisponível neste momento.';return}
+  rkUnsub=claudeDB.collection('players').orderBy('xp','desc').limit(20).onSnapshot(snap=>{
+    if(snap.empty){document.getElementById('rk').textContent='Ninguém no ranking ainda. Jogue para aparecer aqui!';return}
+    document.getElementById('rk').innerHTML=snap.docs.map((d,i)=>{
+      const v=d.data()||{},me=d.id===uid;
+      return `<div class="row" style="justify-content:space-between;padding:8px 0${me?';font-weight:800':''}"><span>${i+1}. ${(v.name||'Jogador').replace(/</g,'')}${me?' (você)':''}</span><span class="xp">⭐ ${v.xp||0}</span></div>`;
+    }).join('');
+  },()=>{document.getElementById('rk').textContent='Não deu para carregar o ranking agora.'});
+}
+
+function home(msg){
+  const due=Object.entries(D.mem).filter(([c,v])=>v.m<70||v.due<=Date.now());
+  $.innerHTML=`<h1>Missão: Aprender</h1><p class="mut">Aqui o jogo é a aula: você decide, erra, entende e tenta de novo.</p>
+  <div class="row" style="margin:16px 0"><span class="xp">⭐ ${D.xp} XP</span></div>
+  <label for="tema"><b>Qual tema você quer virar missão?</b></label>
+  <div class="row" style="margin-top:8px"><input id="tema" type="text" placeholder="Ex.: Revolução Francesa"><button class="btn" id="go">Criar</button></div>
+  ${msg?`<div class="note">${msg}</div>`:''}
+  <div class="topics">${Object.entries(ADV).map(([k,a])=>`<button class="btn ghost topic" data-k="${k}"><span class="em">${a.e}</span><span><b>${a.t}</b><br><span class="mut">🎯 ${a.m}</span></span></button>`).join('')}</div>
+  ${Object.keys(D.mem).length?`<h2>Seu domínio</h2><div class="mastery">${Object.entries(D.mem).map(([c,v])=>`<div><span>${c}</span><span class="bar gold"><i style="width:${v.m}%"></i></span></div>`).join('')}</div>`:''}
+  ${due.length?`<button class="btn full" id="rev">🔁 Revisar ${due.length} ponto${due.length>1?'s':''} fraco${due.length>1?'s':''}</button>`:''}
+  <button class="btn ghost full" id="rkbtn" style="margin-top:10px">🏆 Ver ranking</button>
+  <button class="btn ghost full" id="outbtn" style="margin-top:10px">Sair da conta</button>`;
+  $.querySelectorAll('.topic').forEach(b=>b.onclick=()=>start([b.dataset.k]));
+  document.getElementById('rkbtn').onclick=()=>showRanking();
+  document.getElementById('outbtn').onclick=()=>fbAuth.signOut();
+  document.getElementById('go').onclick=()=>{
+    const v=document.getElementById('tema').value.trim().toLowerCase();if(!v)return;
+    const k=Object.keys(ADV).find(k=>ADV[k].k.some(w=>v.includes(w)||w.includes(v)));
+    k?start([k]):home(`Ainda não tenho uma aventura pronta sobre “${v.replace(/</g,'')}”. O gerador com IA é a próxima etapa; por enquanto, escolha uma das missões abaixo.`)};
+  const r=document.getElementById('rev');if(r)r.onclick=()=>start(null,due.map(d=>d[0]));
+}
+
+function start(keys,concepts){
+  let q=[];
+  Object.entries(ADV).forEach(([k,a])=>{if((keys&&keys.includes(k))||concepts)a.s.forEach(s=>{if(!concepts||concepts.includes(s.c))q.push({s,k})})});
+  G={q,i:0,xp:0,first:{},title:concepts?'Revisão inteligente':ADV[keys[0]].t,mission:concepts?'Fechar as lacunas que apareceram antes':ADV[keys[0]].m,total:q.length,done:0,unlocked:[],missed:[]};
+  step();
+}
+
+function head(){
+  return `<div class="top"><button class="btn ghost" id="x" aria-label="Sair">✕</button><div class="bar" style="flex:1"><i style="width:${G.done/G.total*100}%"></i></div><span class="xp">⭐ ${G.xp}</span></div>
+  <p class="mut">🎯 Missão: ${G.mission}</p>`;
+}
+
+function step(){
+  if(G.i>=G.q.length)return end();
+  const it=G.q[G.i],s=it.s;
+  const tag=it.retry?`<span class="tag retry">🔁 Nova tentativa</span>`:'';
+  let body;
+  if(s.ord){G.pick=[];G.sh=shuf(s.ord);while(G.sh.join()===s.ord.join())G.sh=shuf(s.ord);
+    body=`<div class="opts" id="opts"></div><div id="act"></div>`}
+  else{G.opts=shuf(s.o.map((t,i)=>({t,ok:i===(s.a||0)})));
+    body=`<div class="opts">${G.opts.map((o,i)=>`<button class="opt" data-i="${i}"><b>${L[i]}</b><span>${o.t}</span></button>`).join('')}</div>`}
+  $.innerHTML=head()+`<div class="scene">${tag}<p class="ctx">${s.ctx}</p><h2>${s.q}</h2></div>${body}<div id="fb" aria-live="polite"></div>`;
+  document.getElementById('x').onclick=()=>home();
+  if(s.ord)drawOrd();
+  else $.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(G.opts[b.dataset.i].ok,+b.dataset.i));
+}
+
+function drawOrd(){
+  const s=G.q[G.i].s;
+  document.getElementById('opts').innerHTML=G.sh.map((t,i)=>{const p=G.pick.indexOf(i);
+    return `<button class="opt ${p>=0?'pick':''}" data-i="${i}"><b>${p>=0?p+1:'·'}</b><span>${t}</span></button>`}).join('');
+  document.getElementById('act').innerHTML=G.pick.length?`<div class="row" style="margin-top:12px"><button class="btn ghost" id="undo">Desfazer</button>${G.pick.length===G.sh.length?'<button class="btn" id="chk" style="flex:1">Confirmar ordem</button>':''}</div>`:'';
+  $.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(G.pick.includes(i))return;G.pick.push(i);drawOrd()});
+  const u=document.getElementById('undo');if(u)u.onclick=()=>{G.pick.pop();drawOrd()};
+  const c=document.getElementById('chk');if(c)c.onclick=()=>{
+    const ok=G.pick.every((idx,n)=>G.sh[idx]===s.ord[n]);
+    $.querySelectorAll('.opt').forEach(b=>{b.disabled=true;const i=+b.dataset.i;b.classList.remove('pick');b.classList.add(G.sh[i]===s.ord[G.pick.indexOf(i)]?'ok':'bad')});
+    document.getElementById('act').innerHTML='';
+    answer(ok,-1,true)};
+}
+
+function answer(ok,idx,ord){
+  const it=G.q[G.i],s=it.s,c=s.c;
+  if(!ord){$.querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(G.opts[i].ok)b.classList.add('ok');else if(i===idx)b.classList.add('bad')})}
+  const mem=D.mem[c]||(D.mem[c]={m:0,due:0});
+  let gain=0,extra='';
+  if(ok){
+    gain=it.retry?5:10;G.xp+=gain;D.xp+=gain;
+    if(!it.retry){mem.m=Math.min(100,mem.m+35);}else{mem.m=Math.min(100,mem.m+15)}
+    mem.due=Date.now()+(mem.m>=90?3:1)*864e5;
+    if(!G.unlocked.includes(c))G.unlocked.push(c);
+    extra=`<span class="tag new">+${gain} XP</span><span class="tag">🔓 “${c}” desbloqueado</span>`;
+  }else{
+    mem.m=Math.max(0,mem.m-20);mem.due=Date.now()+864e5;
+    if(!G.missed.includes(c))G.missed.push(c);
+    if(!it.retry){G.q.splice(Math.min(G.i+3,G.q.length),0,{s,k:it.k,retry:true});G.total++;extra=`<span class="tag retry">🔁 Volta daqui a pouco</span>`}
+  }
+  G.done++;save();syncXP();
+  const f=document.getElementById('fb');
+  f.innerHTML=`<div class="fb ${ok?'ok':'bad'}"><h3>${ok?'✅ Exato.':'❌ Ainda não.'}</h3><p>${s.ord&&!ok?'Ordem correta: '+s.ord.join(' → ')+'.<br>':''}${s.x}</p>${extra}<button class="btn full" id="nx" style="margin-top:14px">Continuar</button></div>`;
+  document.getElementById('nx').onclick=()=>{G.i++;step()};
+  f.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function end(){
+  const cs=[...new Set(G.q.map(x=>x.s.c))];
+  const gaps=G.missed;
+  $.innerHTML=`<div class="scene" style="text-align:center"><p class="mut">Missão concluída</p><div class="big">⭐ ${G.xp}</div><p>XP nesta aventura</p></div>
+  <h2>${G.title}: o que você domina</h2>
+  <div class="mastery">${cs.map(c=>`<div><span>${c}</span><span class="bar gold"><i style="width:${(D.mem[c]||{m:0}).m}%"></i></span></div>`).join('')}</div>
+  ${gaps.length?`<div class="note">🔎 O jogo achou lacunas em: <b>${gaps.join(', ')}</b>. Esses pontos ficam marcados para revisão; volte amanhã.</div>`:`<div class="note">🎉 Sem lacunas desta vez. Esses conceitos somem por um tempo e voltam depois, para fixar na memória.</div>`}
+  <div class="opts" style="margin-top:16px"><button class="btn full" id="h">Escolher outra missão</button></div>`;
+  document.getElementById('h').onclick=()=>home();
+}
+boot();
+</script>
+</body>
+</html>
