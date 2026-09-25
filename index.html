@@ -57,11 +57,20 @@ input[type=text]{width:100%;font:inherit;padding:12px;border:2px solid var(--lin
 .note{background:var(--soft);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:.95rem}
 @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px}
+.gbtn svg{flex:none}
 </style>
 </head>
 <body>
 <main id="app"></main>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <script>
+const firebaseConfig={apiKey:"AIzaSyDRzq6Nyt18PaAKDnEZKfqgGHWwNV5Wf0U",authDomain:"aprender-cdd20.firebaseapp.com",projectId:"aprender-cdd20",storageBucket:"aprender-cdd20.firebasestorage.app",messagingSenderId:"38865368724",appId:"1:38865368724:web:e4535aa787bb516cb46681",measurementId:"G-9N66HM6EQE"};
+firebase.initializeApp(firebaseConfig);
+const fbAuth=firebase.auth();
+const fbDB=firebase.firestore();
 const ADV={
 rev:{k:['revolução','francesa','frança','francesa'],e:'🇫🇷',t:'Revolução Francesa',m:'Impedir o colapso da monarquia francesa',s:[
 {c:'Crise econômica',ctx:'🇫🇷 França, 1789 — O preço do pão disparou e a população está revoltada.',q:'O que está contribuindo para a crise?',o:['Gastos do Estado + dívida + tributação desigual','Apenas falta de alimentos','Guerra com a Inglaterra','Impostos baixos'],x:'O Estado estava muito endividado (guerras e luxo da corte) e o Terceiro Estado pagava quase todos os impostos, enquanto clero e nobreza tinham privilégios.'},
@@ -177,17 +186,18 @@ const $=document.getElementById('app');
 const L='ABCD';
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 let G;
-let claudeDB=null,uid=null;
+let claudeDB=null,uid=null,rkUnsub=null;
 
-async function boot(){
-  try{
-    if(window.claude&&window.claude.use){
-      const [user,db]=await Promise.all([window.claude.use('user').catch(()=>null),window.claude.use('db').catch(()=>null)]);
-      claudeDB=db;
-      if(user){try{uid=await user.id()}catch(e){uid=null}}
+function boot(){
+  fbAuth.onAuthStateChanged(user=>{
+    if(user){
+      uid=user.uid;claudeDB=fbDB;
+      if(!D.name){D.name=(user.displayName||'Jogador').slice(0,24);save()}
+      syncXP();home();
+    }else{
+      uid=null;claudeDB=null;loginGate();
     }
-  }catch(e){}
-  if(!D.name)nameGate();else{syncXP();home()}
+  });
 }
 
 function syncXP(){
@@ -195,30 +205,32 @@ function syncXP(){
   claudeDB.doc('players/'+uid).set({name:D.name,xp:D.xp,updated:Date.now()}).catch(()=>{});
 }
 
-function nameGate(){
+function loginGate(){
   $.innerHTML=`<div class="scene" style="text-align:center">
   <h1>Missão: Aprender</h1>
-  <p class="mut">Antes de começar: como você quer aparecer no ranking dos amigos?</p>
-  <div style="margin-top:16px"><input id="pname" type="text" placeholder="Seu nome" maxlength="24"></div>
-  <button class="btn full" id="pgo" style="margin-top:14px">Começar</button>
+  <p class="mut">Entre com sua conta Google pra jogar e aparecer no ranking dos amigos.</p>
+  <button class="btn full gbtn" id="glogin" style="margin-top:16px"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.6 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 6.1 29.5 4 24 4c-7.5 0-14 4.1-17.7 10.7z"/><path fill="#4CAF50" d="M24 45c5.3 0 10.1-2 13.6-5.4l-6.3-5.3C29.4 35.7 26.8 36.5 24 36.5c-5.3 0-9.7-3.5-11.3-8.3l-6.5 5C9.9 40.7 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.3 5.3C40.6 36.4 44 30.7 44 24c0-1.2-.1-2.4-.4-3.5z"/></svg><span>Entrar com Google</span></button>
+  <p class="mut" id="loginErr" style="margin-top:10px"></p>
   </div>`;
-  const go=()=>{const v=document.getElementById('pname').value.trim();if(!v)return;D.name=v.slice(0,24);save();syncXP();home()};
-  document.getElementById('pgo').onclick=go;
-  document.getElementById('pname').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
-  document.getElementById('pname').focus();
+  document.getElementById('glogin').onclick=()=>{
+    document.getElementById('loginErr').textContent='';
+    fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(()=>{
+      document.getElementById('loginErr').textContent='Não deu pra entrar agora. Tente de novo.';
+    });
+  };
 }
 
 function showRanking(){
   $.innerHTML=`<div class="top"><button class="btn ghost" id="x" aria-label="Voltar">✕</button><h2 style="flex:1;text-align:center">🏆 Ranking</h2><span class="xp">⭐ ${D.xp}</span></div><div id="rk" class="note">Carregando…</div>`;
-  document.getElementById('x').onclick=()=>home();
+  document.getElementById('x').onclick=()=>{if(rkUnsub){rkUnsub();rkUnsub=null}home()};
   if(!claudeDB){document.getElementById('rk').textContent='Ranking indisponível neste momento.';return}
-  claudeDB.collection('players').orderBy('xp','desc').limit(20).get().then(snap=>{
+  rkUnsub=claudeDB.collection('players').orderBy('xp','desc').limit(20).onSnapshot(snap=>{
     if(snap.empty){document.getElementById('rk').textContent='Ninguém no ranking ainda. Jogue para aparecer aqui!';return}
     document.getElementById('rk').innerHTML=snap.docs.map((d,i)=>{
       const v=d.data()||{},me=d.id===uid;
       return `<div class="row" style="justify-content:space-between;padding:8px 0${me?';font-weight:800':''}"><span>${i+1}. ${(v.name||'Jogador').replace(/</g,'')}${me?' (você)':''}</span><span class="xp">⭐ ${v.xp||0}</span></div>`;
     }).join('');
-  }).catch(()=>{document.getElementById('rk').textContent='Não deu para carregar o ranking agora.'});
+  },()=>{document.getElementById('rk').textContent='Não deu para carregar o ranking agora.'});
 }
 
 function home(msg){
@@ -231,9 +243,11 @@ function home(msg){
   <div class="topics">${Object.entries(ADV).map(([k,a])=>`<button class="btn ghost topic" data-k="${k}"><span class="em">${a.e}</span><span><b>${a.t}</b><br><span class="mut">🎯 ${a.m}</span></span></button>`).join('')}</div>
   ${Object.keys(D.mem).length?`<h2>Seu domínio</h2><div class="mastery">${Object.entries(D.mem).map(([c,v])=>`<div><span>${c}</span><span class="bar gold"><i style="width:${v.m}%"></i></span></div>`).join('')}</div>`:''}
   ${due.length?`<button class="btn full" id="rev">🔁 Revisar ${due.length} ponto${due.length>1?'s':''} fraco${due.length>1?'s':''}</button>`:''}
-  <button class="btn ghost full" id="rkbtn" style="margin-top:10px">🏆 Ver ranking</button>`;
+  <button class="btn ghost full" id="rkbtn" style="margin-top:10px">🏆 Ver ranking</button>
+  <button class="btn ghost full" id="outbtn" style="margin-top:10px">Sair da conta</button>`;
   $.querySelectorAll('.topic').forEach(b=>b.onclick=()=>start([b.dataset.k]));
   document.getElementById('rkbtn').onclick=()=>showRanking();
+  document.getElementById('outbtn').onclick=()=>fbAuth.signOut();
   document.getElementById('go').onclick=()=>{
     const v=document.getElementById('tema').value.trim().toLowerCase();if(!v)return;
     const k=Object.keys(ADV).find(k=>ADV[k].k.some(w=>v.includes(w)||w.includes(v)));
